@@ -8,6 +8,8 @@ namespace Masa.Collection
     public class BlobList<T>
         where T : struct
     {
+        public const int NullAddress = 0;
+        
         private class Blob
         {
             public int StartIndex { get; }
@@ -51,10 +53,10 @@ namespace Masa.Collection
             }
         }
 
-        public T Read(int address)
+        public ref T Read(int address)
         {
             var blob = _Blobs[address / _BlobSize];
-            return blob.Nodes[address - blob.StartIndex];
+            return ref blob.Nodes[address - blob.StartIndex];
         }
 
         public int Allocate()
