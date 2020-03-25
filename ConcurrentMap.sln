@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "Benchmark\Benc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Masa.Collection", "Masa.Collection\Masa.Collection.csproj", "{4E3C3636-6FAC-456E-8040-B0173D49A442}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Masa.Collection.Tests", "Masa.Collection.Tests\Masa.Collection.Tests.csproj", "{476B04D2-FBA2-4B24-BB60-56E41AF30350}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{4E3C3636-6FAC-456E-8040-B0173D49A442}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E3C3636-6FAC-456E-8040-B0173D49A442}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E3C3636-6FAC-456E-8040-B0173D49A442}.Release|Any CPU.Build.0 = Release|Any CPU
+		{476B04D2-FBA2-4B24-BB60-56E41AF30350}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{476B04D2-FBA2-4B24-BB60-56E41AF30350}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{476B04D2-FBA2-4B24-BB60-56E41AF30350}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{476B04D2-FBA2-4B24-BB60-56E41AF30350}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

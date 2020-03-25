@@ -36,7 +36,7 @@ namespace Masa.Collection
             {
                 lastAddress = prevNode.NextAddress;
                 _Blob.Write(newNode, new Node(lastAddress, value));
-            } while (Interlocked.CompareExchange(ref prevNode.NextAddress, newNode, lastAddress) == lastAddress);
+            } while (Interlocked.CompareExchange(ref prevNode.NextAddress, newNode, lastAddress) != lastAddress);
             return newNode;
         }
 
