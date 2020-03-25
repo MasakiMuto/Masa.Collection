@@ -30,7 +30,7 @@ namespace Masa.Collection
         public int AddAfter(int prevNodeAddress, in T value)
         {
             var newNode = _Blob.Allocate();
-            var prevNode = _Blob.Read(prevNodeAddress);
+            ref var prevNode = ref _Blob.Read(prevNodeAddress);
             int lastAddress;
             do
             {
