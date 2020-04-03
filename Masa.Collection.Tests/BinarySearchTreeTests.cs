@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using NUnit.Framework;
@@ -45,6 +46,44 @@ namespace Masa.Collection.Tests
             }
 
             tree.Contains(Guid.NewGuid()).Should().Be(false);
+        }
+
+        [Test]
+        public void ParallelAddRemoveTest()
+        {
+            var tree = new BinarySearchTree<Guid>();
+            var sources = Enumerable.Range(0, 100)
+                .Select(_ => Guid.NewGuid())
+                .ToArray();
+            var add = 0;
+            Parallel.ForEach(sources, x =>
+            {
+                if (tree.Add(x))
+                {
+                    Interlocked.Increment(ref add);
+                }
+            });
+            add.Should().Be(sources.Length);
+
+            var remove = 0;
+            Parallel.ForEach(sources, x =>
+            {
+                if (tree.Remove(x))
+                {
+                    Interlocked.Increment(ref remove);
+                }
+            });
+            remove.Should().Be(sources.Length);
+
+            var re = 0;
+            Parallel.ForEach(sources, x =>
+            {
+                if (tree.Add(x))
+                {
+                    Interlocked.Increment(ref re);
+                }
+            });
+            re.Should().Be(sources.Length);
         }
     }
 }

@@ -89,6 +89,146 @@ namespace Masa.Collection
             }
         }
 
+        public bool Remove(T key)
+        {
+            Ptr temp;
+            
+            while (true)
+            {
+                Seek(key, out var parent, out var node, out _);
+                ref var nNode = ref _BlobList.Read(node);
+                var nKey = nNode.Key;
+                if (key.CompareTo(nKey) != 0)
+                {
+                    return false;
+                }
+
+                ref var pNode = ref _BlobList.Read(parent);
+                var pKey = pNode.Key;
+                temp = nNode.Left;
+                var lChild = GetAddress(temp);
+                var ln = IsNull(temp);
+                temp = nNode.Right;
+                var rChild = GetAddress(temp);
+                var rn = IsNull(temp);
+                var pWhich = (parent == _S || nKey.CompareTo(pKey) < 0) ? LEFT : RIGHT;
+
+                if (ln || rn) //simple delete
+                {
+                    if (LockEdge(parent, node, pWhich, false))
+                    {
+                        if (LockEdge(node, lChild, LEFT, ln))
+                        {
+                            if (LockEdge(node, rChild, RIGHT, rn))
+                            {
+                                if (nKey.CompareTo(nNode.Key) != 0)
+                                {
+                                    UnlockEdge(parent, pWhich);
+                                    UnlockEdge(node, LEFT);
+                                    UnlockEdge(node, RIGHT);
+                                    continue;
+                                }
+
+                                if (ln && rn)
+                                {
+                                    pNode.Set(pWhich, SetNull(node));
+                                }
+                                else if (ln)
+                                {
+                                    pNode.Set(pWhich, rChild);
+                                }
+                                else
+                                {
+                                    pNode.Set(pWhich, lChild);
+                                }
+
+                                return true;
+                            }
+                            else
+                            {
+                                UnlockEdge(parent, pWhich);
+                                UnlockEdge(node, LEFT);
+                            }
+                        }
+                        else
+                        {
+                            UnlockEdge(parent, pWhich);
+                        }
+                    }
+                    continue;
+                }
+                
+                //complex delete
+                var isSplCase = FindSmallest(node, rChild, out var succNode, out var succParent);
+                var isSplCaseN = isSplCase ? 1 : 0;
+                ref var sNode = ref _BlobList.Read(succNode);
+                var succNodeLChild = GetAddress(sNode.Left);
+                temp = sNode.Right;
+                var srn = IsNull(temp);
+                var succNodeRChild = GetAddress(temp);
+                if (!isSplCase)
+                {
+                    if (!LockEdge(node, rChild, RIGHT, false))
+                    {
+                        continue;
+                    }
+                }
+
+                if (LockEdge(succParent, succNode, isSplCaseN, false))
+                {
+                    if (LockEdge(succNode, succNodeLChild, LEFT, true))
+                    {
+                        if (LockEdge(succNode, succNodeRChild, RIGHT, srn))
+                        {
+                            if (nKey.CompareTo(nNode.Key) != 0)
+                            {
+                                if (!isSplCase)
+                                {
+                                    UnlockEdge(node, RIGHT);
+                                }
+                                UnlockEdge(succParent, isSplCaseN);
+                                UnlockEdge(succNode, LEFT);
+                                UnlockEdge(succNode, RIGHT);
+                                continue;
+                            }
+
+                            nNode.Key = sNode.Key;
+                            ref var spNode = ref _BlobList.Read(succParent);
+                            if (srn)
+                            {
+                                spNode.Set(isSplCaseN, SetNull(succNode));
+                            }
+                            else
+                            {
+                                spNode.Set(isSplCaseN, succNodeRChild);
+                            }
+
+                            if (!isSplCase)
+                            {
+                                UnlockEdge(node, RIGHT);
+                            }
+
+                            return true;
+                        }
+                        else
+                        {
+                            UnlockEdge(succParent, isSplCaseN);
+                            UnlockEdge(succNode, LEFT);
+                        }
+                    }
+                    else
+                    {
+                        UnlockEdge(succNode, isSplCaseN);
+                    }
+                }
+
+                if (!isSplCase)
+                {
+                    UnlockEdge(node, RIGHT);
+                }
+            }
+        }
+
         private void Seek(T value, out Ptr parent, out Ptr node, out Ptr injectionPoint)
         {
             Span<Ptr> prev = stackalloc Ptr[2];
@@ -181,6 +321,27 @@ namespace Masa.Collection
                 injectionPoint = address[index];
                 ArrayPool<T>.Shared.Return(lastRKey);
             }
+        }
+
+        private bool FindSmallest(Ptr node, Ptr rChild, out Ptr found, out Ptr foundParent)
+        {
+            var prev = node;
+            var curr = rChild;
+            while (true)
+            {
+                var temp = _BlobList.Read(curr).Left;
+                if (IsNull(temp))
+                {
+                    break;
+                }
+
+                prev = curr;
+                curr = GetAddress(temp);
+            }
+
+            found = curr;
+            foundParent = prev;
+            return prev == node;
         }
 
         private bool CompareAndSwap(Ptr parent, int which, Ptr oldChild, Ptr newChild)
