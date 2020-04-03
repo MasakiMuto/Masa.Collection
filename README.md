@@ -5,3 +5,6 @@ Thread-Safe Collection Implementations.
 https://www.slideshare.net/kumagi/splitordered-linked-list-lock-free-hash-table-4751662
 https://www.slideshare.net/kumagi/lock-free-safe
 https://www.slideshare.net/kumagi/lockfree-list
+
+CASTLE
+https://github.com/arunmoezhi/castle
