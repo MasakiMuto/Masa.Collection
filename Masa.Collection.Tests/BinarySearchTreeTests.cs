@@ -7,6 +7,7 @@ namespace Masa.Collection.Tests
     public class BinarySearchTreeTests
     {
         [Test]
+        [TestCase(3, 4, 5)]
         [TestCase(0, 1, 2)]
         [TestCase(0, 2, 1)]
         [TestCase(1, 0, 2)]

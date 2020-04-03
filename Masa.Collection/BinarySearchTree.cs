@@ -42,7 +42,9 @@ namespace Masa.Collection
             _Root = _BlobList.Allocate();
             _S = _BlobList.Allocate();
             ref var root = ref _BlobList.Read(_Root);
+            _BlobList.Write(_Root, new Node(default));
             root.Right = _S;
+            _BlobList.Write(_S, new Node(default));
         }
 
         public bool Contains(T key)
@@ -61,8 +63,12 @@ namespace Masa.Collection
             {
                 this.Seek(key, out var parent, out var node, out var address);
                 ref var nNode = ref _BlobList.Read(node);
-                var nKey = nNode.Key;
-                if (nKey.Equals(key))
+                var compare = key.CompareTo(nNode.Key);
+                if (node == _S)
+                {
+                    compare = -1;
+                }
+                if (compare == 0)
                 {
                     return false;
                 }
@@ -74,7 +80,7 @@ namespace Masa.Collection
                     _BlobList.Write(newNode, in tmp);
                     created = true;
                 }
-                var which = key.CompareTo(nKey) > 0 ? RIGHT : LEFT;
+                var which = compare > 0 ? RIGHT : LEFT;
                 var result = CompareAndSwap(node, which, SetNull(address), newNode);
                 if (result)
                 {
