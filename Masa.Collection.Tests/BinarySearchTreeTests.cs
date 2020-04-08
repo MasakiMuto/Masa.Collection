@@ -46,6 +46,7 @@ namespace Masa.Collection.Tests
             }
 
             tree.Contains(Guid.NewGuid()).Should().Be(false);
+            tree.Should().BeEquivalentTo(sources);
         }
 
         [Test]
@@ -64,7 +65,8 @@ namespace Masa.Collection.Tests
                 }
             });
             add.Should().Be(sources.Length);
-
+            tree.Should().BeEquivalentTo(sources);
+            
             var remove = 0;
             Parallel.ForEach(sources, x =>
             {
@@ -74,6 +76,7 @@ namespace Masa.Collection.Tests
                 }
             });
             remove.Should().Be(sources.Length);
+            tree.Should().BeEmpty();
 
             var re = 0;
             Parallel.ForEach(sources, x =>
@@ -84,6 +87,7 @@ namespace Masa.Collection.Tests
                 }
             });
             re.Should().Be(sources.Length);
+            tree.Should().BeEquivalentTo(sources);
         }
     }
 }

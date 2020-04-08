@@ -1,5 +1,8 @@
 using System;
 using System.Buffers;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using static Masa.Collection.BinarySearchTreeHelper;
 using Ptr = System.Int32;
@@ -7,7 +10,7 @@ using Ptr = System.Int32;
 
 namespace Masa.Collection
 {
-    public class BinarySearchTree<T>
+    public class BinarySearchTree<T> : IReadOnlyCollection<T>
         where T : IComparable<T>
     {
         private const int LEFT = 0;
@@ -36,6 +39,8 @@ namespace Masa.Collection
         private readonly Ptr _Root; //minimum
         private readonly Ptr _S; //maximum
 
+        public int Count => _BlobList.LivingCount - 2; //_S, _Root
+
         public BinarySearchTree(int blobSize = 256)
         {
             _BlobList = new BlobList<Node>(blobSize);
@@ -53,6 +58,8 @@ namespace Masa.Collection
             var n = _BlobList.Read(node).Key;
             return key.CompareTo(n) == 0;
         }
+        
+        
 
         public bool Add(T key)
         {
@@ -141,6 +148,7 @@ namespace Masa.Collection
                                 {
                                     pNode.Set(pWhich, lChild);
                                 }
+                                _BlobList.Free(node);
 
                                 return true;
                             }
@@ -207,6 +215,7 @@ namespace Masa.Collection
                             {
                                 UnlockEdge(node, RIGHT);
                             }
+                            _BlobList.Free(node);
 
                             return true;
                         }
@@ -377,6 +386,42 @@ namespace Masa.Collection
         {
             ref var pNode = ref _BlobList.Read(parent);
             pNode.Set(which, SetUnlock(pNode.Get(which)));
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            //the results may contain duplication
+            
+            var stack = new Stack<int>();
+            var sNode = _BlobList.Read(_S);
+            var l = sNode.Left;
+            if (IsNull(l))
+            {
+                yield break;
+            }
+
+            stack.Push(GetAddress(l));
+            while (stack.TryPop(out var current))
+            {
+                var node = _BlobList.Read(current);
+                yield return node.Key;
+                var left = node.Left;
+                var right = node.Right;
+                if (!IsNull(left))
+                {
+                    stack.Push(GetAddress(left));
+                }
+
+                if (!IsNull(right))
+                {
+                    stack.Push(GetAddress(right));
+                }
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
