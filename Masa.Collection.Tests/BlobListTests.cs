@@ -30,5 +30,37 @@ namespace Masa.Collection.Tests
 
             items.Should().BeEquivalentTo(values);
         }
+
+        [TestCase(8, 4)]
+        [TestCase(8, 12)]
+        [TestCase(7, 32)]
+        [TestCase(128, 300)]
+        [TestCase(64, 300)]
+        public void FreeTest(int blobSize, int itemCount)
+        {
+            var addressList = new ConcurrentStack<int>();
+            var blobs = new BlobList<int>(blobSize);
+            
+            for (var i = 0; i < itemCount; i++)
+            {
+                var address = blobs.Allocate();
+                addressList.Push(address);
+            }
+
+            blobs.LivingCount.Should().Be(itemCount);
+
+            foreach (var address in addressList)
+            {
+                blobs.Free(address);
+            }
+
+            blobs.LivingCount.Should().Be(0);
+
+            for (int i = 0; i < itemCount * 2; i++)
+            {
+                blobs.Allocate();
+                blobs.LivingCount.Should().Be(i + 1);
+            }
+        }
     }
 }

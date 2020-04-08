@@ -85,5 +85,7 @@ namespace Masa.Collection
         {
             _FreeAddress.Push(address);
         }
+
+        public int LivingCount => _LastIndex - _FreeAddress.Count;
     }
 }
