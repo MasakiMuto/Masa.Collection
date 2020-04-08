@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Linq;
+using BenchmarkDotNet.Running;
+using Masa.Collection;
 
 namespace Benchmark
 {
@@ -6,7 +10,7 @@ namespace Benchmark
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            var summary = BenchmarkRunner.Run<CollectionBenchmark>();
         }
     }
 }
